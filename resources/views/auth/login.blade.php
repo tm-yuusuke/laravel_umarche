@@ -1,4 +1,6 @@
+{{--ハイフンで繋ぐ書き方をケバブケースと言う。x-は固定guest-layoutはapp/view/component。GuestLayoutクラスを読んでview（layout/guest.blade.php)を返す--}}
 <x-guest-layout>
+    {{--x-は固定auth-cardがファイル名--}}
     <x-auth-card>
         <x-slot name="logo">
             <a href="/">
