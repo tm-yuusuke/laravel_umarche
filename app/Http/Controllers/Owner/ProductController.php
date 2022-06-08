@@ -12,6 +12,7 @@ use App\Models\Stock;
 use App\Models\Shop;
 use App\Models\PrimaryCategory;
 use App\Models\Owner;
+use App\Http\Requests\ProductRequest;
 
 
 class ProductController extends Controller
@@ -82,24 +83,8 @@ class ProductController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ProductRequest $request)
     {
-        //dd($request);
-        $request->validate([
-            'name' => 'required|string|max:50',
-            'information' => 'required|string|max:1000',
-            'price' => 'required|integer',
-            'sort_order' => 'nullable|integer',
-            'quantity' => 'required|integer',
-            'shop_id' => 'required|exists:shops,id',
-            'category' => 'required|exists:secondary_categories,id',
-            'image1' => 'nullable|exists:images,id',
-            'image2' => 'nullable|exists:images,id',
-            'image3' => 'nullable|exists:images,id',
-            'image4' => 'nullable|exists:images,id',
-            'is_selling' => 'required',
-        ]);
-
         try{
             DB::transaction(function () use($request) {
                 $product = Product::create([
@@ -158,17 +143,25 @@ class ProductController extends Controller
         'images','categories'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
+    public function update(ProductRequest $request, $id)
     {
-        //
-    }
+        $request->validate([
+            'current_quantity' => 'required|integer',
+        ]);
+
+        $product = Product::findOrFail($id);
+        $quantity = Stock::where('product_id', $product->id)
+        ->sum('quantity');
+
+        if($request->current_quantity !== $quantity){
+            $id = $request->route()->parameter('product');
+            return redirect()->route('owner.products.edit',['product' => $id])
+            ->with(['message' => '在庫数が変更されています。再度確認してください。',
+            'status' =>'alert']);
+        }else{
+
+        }
+        }
 
     /**
      * Remove the specified resource from storage.
